@@ -79,26 +79,24 @@ $GWIPconfName = "gwipconf"
 $DNS = "10.2.1.4"
 ```
 
-For production environments...
 
-```sh
-npm install --production
-NODE_ENV=production node app
-```
 Create a VNet
 Create a resource group.
 
-Azure PowerShell
 
 
-New-AzResourceGroup -Name $RG -Location $Location
+
+```New-AzResourceGroup -Name $RG -Location $Location```
+
 Create the subnet configurations for the virtual network, naming them FrontEnd and GatewaySubnet. These prefixes must be part of the VNet address space that you declared.
 
-Azure PowerShell
 
 
+
+```
 $fesub = New-AzVirtualNetworkSubnetConfig -Name $FESubName -AddressPrefix $FESubPrefix
 $gwsub = New-AzVirtualNetworkSubnetConfig -Name $GWSubName -AddressPrefix $GWSubPrefix
+```
 Create the virtual network.
 
 In this example, the -DnsServer server parameter is optional. Specifying a value does not create a new DNS server. The DNS server IP address that you specify should be a DNS server that can resolve the names for the resources you are connecting to from your VNet. This example uses a private IP address, but it is likely that this is not the IP address of your DNS server. Be sure to use your own values. The value you specify is used by the resources that you deploy to the VNet, not by the P2S connection or the VPN client.
@@ -108,6 +106,7 @@ Azure PowerShell
 
 
 Try It
+```
     New-AzVirtualNetwork `
    -ResourceGroupName $RG `
    -Location $Location `
@@ -115,14 +114,16 @@ Try It
    -AddressPrefix $VNetPrefix `
    -Subnet $fesub, $gwsub `
    -DnsServer $DNS
+   ```
 Specify the variables for the virtual network you created.
 
 Azure PowerShell
 
 
-
+```
 $vnet = Get-AzVirtualNetwork -Name $VNetName -ResourceGroupName $RG
 $subnet = Get-AzVirtualNetworkSubnetConfig -Name "GatewaySubnet" -VirtualNetwork $vnet
+```
 
 A VPN gateway must have a Public IP address. You first request the IP address resource, and then refer to it when creating your virtual network gateway. The IP address is dynamically assigned to the resource when the VPN gateway is created. VPN Gateway currently only supports Dynamic Public IP address allocation. You cannot request a Static Public IP address assignment. However, it doesn't mean that the IP address changes after it has been assigned to your VPN gateway. The only time the Public IP address changes is when the gateway is deleted and re-created. It doesn't change across resizing, resetting, or other internal maintenance/upgrades of your VPN gateway.
 
@@ -131,27 +132,7 @@ Request a dynamically assigned public IP address.
 Azure PowerShell
 
 
-
+```
 $pip = New-AzPublicIpAddress -Name $GWIPName -ResourceGroupName $RG -Location $Location -AllocationMethod Dynamic
 $ipconf = New-AzVirtualNetworkGatewayIpConfig -Name $GWIPconfName -Subnet $subnet -PublicIpAddress $pip
-
-## Development
-
-Want to contribute? Great!
-
-Dillinger uses Gulp + Webpack for fast developing.
-Make a change in your file and instantaneously see your updates!
-
-Open your favorite Terminal and run these commands.
-
-First Tab:
-
-```sh
-node app
-```
-
-Second Tab:
-
-```sh
-gulp watch
 ```
