@@ -36,26 +36,26 @@ VNet Sample Data
 
 | Name | Value |
 | ------ | ------ |
-| VNet Name | [VNet1][PlDb] |
-| Address space | [10.1.0.0/16][PlGh] |
+| VNet Name | VNet1 |
+| Address space | 10.1.0.0/16 |
 For this example, we use only one address space. You can have more than one address space for your VNet.
-| Subnet name | [FrontEnd][PlGd] |
-| Subnet address range | [10.1.0.0/24][PlOd] |
+| Subnet name | FrontEnd |
+| Subnet address range | 10.1.0.0/24 |
 Subscription: If you have more than one subscription, verify that you're using the correct one.
-| Resource Group | [TestRG1][PlMe] |
-| Location | [East US][PlGa] |
+| Resource Group | TestRG1 |
+| Location | East US |
 
 Virtual network gateway
 
 | Name | Value |
 | ------ | ------ |
-| Virtual network gateway name| [VNet1GW][PlDb] |
-| Gateway type | [VPN][PlGh] |
+| Virtual network gateway name| VNet1GW |
+| Gateway type | VPN |
 For this example, we use only one address space. You can have more than one address space for your VNet.
-| VPN type | [Route-based][PlGd] |
-| SKU | [VpnGw2][PlOd] |
-| Gateway subnet address range| [10.1.255.0/27][PlMe] |
-| Public IP address name | [VNet1GWpip][PlGa] |
+| VPN type | Route-based |
+| SKU | VpnGw2 |
+| Gateway subnet address range| 10.1.255.0/27|
+| Public IP address name | VNet1GWpip |
 
 Connection type and client address pool
 
@@ -63,7 +63,70 @@ Connection type: Point-to-site
 Client address pool: 172.16.201.0/24
 VPN clients that connect to the VNet using this point-to-site connection receive an IP address from the client address pool.
 
+### Implentation Zone
 
+Create resource group
+Create an Azure resource group with New-AzResourceGroup. A resource group is a logical container into which Azure resources are deployed and managed.
+
+Azure PowerShell
+
+Copy
+
+Try It
+```
+New-AzResourceGroup -Name 'myResourceGroup' -Location 'EastUS'
+```
+Create virtual machine
+Create a VM with New-AzVM. Provide names for each of the resources and the New-AzVM cmdlet creates if they don't already exist.
+
+When prompted, provide a username and password to be used as the sign-in credentials for the VM:
+
+```
+New-AzVm `
+    -ResourceGroupName 'myResourceGroup' `
+    -Name 'myVM' `
+    -Location 'East US' `
+    -VirtualNetworkName 'myVnet' `
+    -SubnetName 'mySubnet' `
+    -SecurityGroupName 'myNetworkSecurityGroup' `
+    -PublicIpAddressName 'myPublicIpAddress' `
+```
+
+
+#### Install Az PowerShell
+
+Install the Azure Az PowerShell module
+
+
+This article explains how to install the Azure Az PowerShell module from The PowerShell Gallery. These instructions work on Windows, Linux, and macOS platforms.
+
+The Azure Az PowerShell module is preinstalled in Azure Cloud Shell and in Docker images.
+
+The Azure Az PowerShell module is a rollup module. Installing it downloads the generally available Az PowerShell modules, and makes their cmdlets available for use.
+
+Requirements
+ Note
+
+PowerShell 7.0.6 LTS, PowerShell 7.1.3, or higher is the recommended version of PowerShell for use with the Azure Az PowerShell module on all platforms.
+
+Azure PowerShell has no additional requirements when run on PowerShell 7.0.6 LTS and PowerShell 7.1.3 or higher.
+
+Install the latest version of PowerShell available for your operating system.
+To check your PowerShell version, run the following command from within a PowerShell session:
+
+```
+$PSVersionTable.PSVersion
+```
+PowerShell script execution policy must be set to remote signed or less restrictive. Get-ExecutionPolicy -List can be used to determine the current execution policy. For more information, see about_Execution_Policies.
+
+```
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+Installation
+Using the Install-Module cmdlet is the preferred installation method for the Az PowerShell module. Install the Az module for the current user only. This is the recommended installation scope. This method works the same on Windows, Linux, and macOS platforms. Run the following command from a PowerShell session:
+```
+Install-Module -Name Az -Scope CurrentUser -Repository PSGallery -Force
+```
 ### Declare variables
 We use variables for this article so that you can easily change the values to apply to your own environment without having to change the examples themselves. Declare the variables that you want to use. You can use the following sample, substituting the values for your own when necessary. If you close your PowerShell/Cloud Shell session at any point during the exercise, just copy and paste the values again to re-declare the variables.
 
@@ -170,11 +233,6 @@ Certificates are used by Azure to authenticate VPN clients for point-to-site VPN
 
 If you use self-signed certificates, they must be created using specific parameters. You can create a self-signed certificate using the instructions for PowerShell and Windows 10 or later, or, if you don't have Windows 10 or later, you can use MakeCert. It's important that you follow the steps in the instructions when generating self-signed root certificates and client certificates. Otherwise, the certificates you generate will not be compatible with P2S connections and you receive a connection error.
 
-Root certificate
-Obtain the .cer file for the root certificate. You can use either a root certificate that was generated with an enterprise solution (recommended), or generate a self-signed certificate. After you create the root certificate, export the public certificate data (not the private key) as a Base64 encoded X.509 .cer file. You upload this file later to Azure.
-
-Enterprise certificate: If you're using an enterprise solution, you can use your existing certificate chain. Acquire the .cer file for the root certificate that you want to use.
-
 Self-signed root certificate: If you aren't using an enterprise certificate solution, create a self-signed root certificate. Otherwise, the certificates you create won't be compatible with your P2S connections and clients will receive a connection error when they try to connect. You can use Azure PowerShell, MakeCert, or OpenSSL. The steps in the following articles describe how to generate a compatible self-signed root certificate:
 
 Windows 10 or later PowerShell instructions: These instructions require Windows 10 or later and PowerShell to generate certificates. Client certificates that are generated from the root certificate can be installed on any supported P2S client.
@@ -189,11 +247,6 @@ You can either generate a unique certificate for each client, or you can use the
 
 You can generate client certificates by using the following methods:
 
-Enterprise certificate:
-
-If you're using an enterprise certificate solution, generate a client certificate with the common name value format name@yourdomain.com. Use this format instead of the domain name\username format.
-
-Make sure the client certificate is based on a user certificate template that has Client Authentication listed as the first item in the user list. Check the certificate by double-clicking it and viewing Enhanced Key Usage in the Details tab.
 
 Self-signed root certificate: Follow the steps in one of the following P2S certificate articles so that the client certificates you create will be compatible with your P2S connections.
 
@@ -203,11 +256,45 @@ The steps in these articles generate a compatible client certificate, which you 
 
 Windows 10 or later PowerShell instructions: These instructions require Windows 10 or later, and PowerShell to generate certificates. The generated certificates can be installed on any supported P2S client.
 
-MakeCert instructions: Use MakeCert if you don't have access to a Windows 10 or later computer for generating certificates. Although MakeCert is deprecated, you can still use it to generate certificates. You can install the generated certificates on any supported P2S client.
+Create a self-signed root certificate
 
-Linux instructions.
+Use the New-SelfSignedCertificate cmdlet to create a self-signed root certificate. For additional parameter information, see New-SelfSignedCertificate.
 
-After you create client certificate, export it. The client certificate will be distributed to the client computers that will connect.
+From a computer running Windows 10 or later, or Windows Server 2016, open a Windows PowerShell console with elevated privileges. These examples don't work in the Azure Cloud Shell "Try It". You must run these examples locally.
+
+Use the following example to create the self-signed root certificate. The following example creates a self-signed root certificate named 'P2SRootCert' that is automatically installed in 'Certificates-Current User\Personal\Certificates'. You can view the certificate by opening certmgr.msc, or Manage User Certificates.
+
+Run the following example with any necessary modifications.
+
+PowerShell
+
+Copy
+```
+$cert = New-SelfSignedCertificate -Type Custom -KeySpec Signature `
+-Subject "CN=P2SRootCert" -KeyExportPolicy Exportable `
+-HashAlgorithm sha256 -KeyLength 2048 `
+-CertStoreLocation "Cert:\CurrentUser\My" -KeyUsageProperty Sign -KeyUsage CertSign
+```
+Leave the PowerShell console open and proceed with the next steps to generate a client certificate.
+
+Generate a client certificate
+Each client computer that connects to a VNet using Point-to-Site must have a client certificate installed. You generate a client certificate from the self-signed root certificate, and then export and install the client certificate. If the client certificate isn't installed, authentication fails.
+
+The following steps walk you through generating a client certificate from a self-signed root certificate. You may generate multiple client certificates from the same root certificate. When you generate client certificates using the steps below, the client certificate is automatically installed on the computer that you used to generate the certificate. If you want to install a client certificate on another client computer, you can export the certificate.
+
+The examples use the New-SelfSignedCertificate cmdlet to generate a client certificate that expires in one year. For additional parameter information, such as setting a different expiration value for the client certificate, see New-SelfSignedCertificate.
+
+Example 1 - PowerShell console session still open
+Use this example if you haven't closed your PowerShell console after creating the self-signed root certificate. This example continues from the previous section and uses the declared '$cert' variable. If you closed the PowerShell console after creating the self-signed root certificate, or are creating additional client certificates in a new PowerShell console session, use the steps in Example 2.
+
+Modify and run the example to generate a client certificate. If you run the following example without modifying it, the result is a client certificate named 'P2SChildCert'. If you want to name the child certificate something else, modify the CN value. Don't change the TextExtension when running this example. The client certificate that you generate is automatically installed in 'Certificates - Current User\Personal\Certificates' on your computer.
+```
+New-SelfSignedCertificate -Type Custom -DnsName P2SChildCert -KeySpec Signature `
+-Subject "CN=P2SChildCert" -KeyExportPolicy Exportable `
+-HashAlgorithm sha256 -KeyLength 2048 `
+-CertStoreLocation "Cert:\CurrentUser\My" `
+-Signer $cert -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.2")
+```
 
 Upload root certificate public key information
 Verify that your VPN gateway has finished creating. Once it has completed, you can upload the .cer file (which contains the public key information) for a trusted root certificate to Azure. Once a .cer file is uploaded, Azure can use it to authenticate clients that have installed a client certificate generated from the trusted root certificate. You can upload additional trusted root certificate files - up to a total of 20 - later, if needed.
@@ -218,9 +305,7 @@ You can't upload the .cer file using Azure Cloud Shell. You can either use Power
 
 Declare the variable for your certificate name, replacing the value with your own.
 
-Azure PowerShell
 
-Copy
 ```
 $P2SRootCertName = "P2SRootCert.cer"
 ```
@@ -232,6 +317,7 @@ $cert = new-object System.Security.Cryptography.X509Certificates.X509Certificate
 $CertBase64 = [system.convert]::ToBase64String($cert.RawData)
 ```
 Upload the public key information to Azure. Once the certificate information is uploaded, Azure considers it to be a trusted root certificate. When uploading, make sure you are running PowerShell locally on your computer, or instead, you can use the Azure portal steps. You can't upload using Azure Cloud Shell.
+
 ```
 Add-AzVpnClientRootCertificate -VpnClientRootCertificateName $P2SRootCertName -VirtualNetworkGatewayname "VNet1GW" -ResourceGroupName "TestRG1" -PublicCertData $CertBase64
 ```
@@ -267,15 +353,15 @@ You can use the same VPN client configuration package on each Windows client com
 
 You must have Administrator rights on the Windows client computer from which you want to connect.
 
-Install the configuration files
+### Install the configuration files
 Select the VPN client configuration files that correspond to the architecture of the Windows computer. For a 64-bit processor architecture, choose the 'VpnClientSetupAmd64' installer package. For a 32-bit processor architecture, choose the 'VpnClientSetupX86' installer package.
 Double-click the package to install it. If you see a SmartScreen popup, click More info, then Run anyway.
 Verify and connect
 Verify that you have installed a client certificate on the client computer. A client certificate is required for authentication when using the native Azure certificate authentication type. To view the client certificate, open Manage User Certificates. The client certificate is installed in Current User\Personal\Certificates.
 To connect, navigate to Network Settings and click VPN. The VPN connection shows the name of the virtual network that it connects to.
-10. Connect to Azure
+ Connect to Azure
 Windows VPN client
- Note
+
 
 You must have Administrator rights on the Windows client computer from which you are connecting.
 
