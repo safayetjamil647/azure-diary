@@ -63,7 +63,7 @@ Connection type: Point-to-site
 Client address pool: 172.16.201.0/24
 VPN clients that connect to the VNet using this point-to-site connection receive an IP address from the client address pool.
 
-### Implentation Zone
+### Implentation 
 
 Create resource group
 Create an Azure resource group with New-AzResourceGroup. A resource group is a logical container into which Azure resources are deployed and managed.
@@ -142,9 +142,6 @@ $DNS = "10.2.1.4"
 ```
 
 
-Create a VNet
-Create a resource group.
-
 
 Create the subnet configurations for the virtual network, naming them FrontEnd and GatewaySubnet. These prefixes must be part of the VNet address space that you declared.
 
@@ -187,6 +184,24 @@ Request a dynamically assigned public IP address.
 $pip = New-AzPublicIpAddress -Name $GWIPName -ResourceGroupName $RG -Location $Location -AllocationMethod Dynamic
 $ipconf = New-AzVirtualNetworkGatewayIpConfig -Name $GWIPconfName -Subnet $subnet -PublicIpAddress $pip
 ```
+# Graphical Presentation for Azure Portal
+![image](https://user-images.githubusercontent.com/60421249/186504359-12853db5-3abc-40a6-baab-19494436c0b8.png)
+
+![image](https://user-images.githubusercontent.com/60421249/186504426-a5b2ab49-9755-4b0a-bd67-382d89075477.png)
+
+![image](https://user-images.githubusercontent.com/60421249/186504451-5a6b22ed-686b-409a-bcc3-6ac92dea5ea0.png)
+
+![image](https://user-images.githubusercontent.com/60421249/186504502-3c5b35d2-4e80-40ca-a7fe-b8bd413d587d.png)
+
+![image](https://user-images.githubusercontent.com/60421249/186504571-9ab477f8-9c3e-4f3a-9f35-d2b134c1d1ac.png)
+
+![image](https://user-images.githubusercontent.com/60421249/186504620-727f8f89-eb70-434e-b968-ffa741da6440.png)
+
+![image](https://user-images.githubusercontent.com/60421249/186504810-e394a4d8-9ef2-4cc5-bbec-f638cea408c9.png)
+
+![image](https://user-images.githubusercontent.com/60421249/186504840-d72a4195-f479-4ce6-9867-810ae5e8ff8f.png)
+
+![image](https://user-images.githubusercontent.com/60421249/186504870-b31eb7f2-ca35-45b8-aa1f-a7389a736608.png)
 
 
 Create the VPN gateway
@@ -360,3 +375,69 @@ To connect to your VNet, on the client computer, navigate to VPN settings and lo
 
 On the Connection status page, select Connect to start the connection. If you see a Select Certificate screen, verify that the client certificate showing is the one that you want to use to connect. If it is not, use the drop-down arrow to select the correct certificate, and then select OK.
 
+
+# Full block of example code
+
+
+```
+  $VNetName  = "VNet1"
+  $RG = "TestRG1"
+  $Location = "East US"
+  $FESubName = "FrontEnd"
+  $VNetPrefix1 = "10.1.0.0/16"
+  $FESubPrefix = "10.1.0.0/24"
+  $GWSubPrefix = "10.1.255.0/27"
+  $VPNClientAddressPool = "192.168.0.0/24"
+  $GWName = "VNet1GW"
+  $GWIPName = "VNet1GWIP"
+
+# Create a resource group
+New-AzResourceGroup -Name $RG -Location EastUS
+# Create a virtual network
+$virtualNetwork = New-AzVirtualNetwork `
+  -ResourceGroupName $RG `
+  -Location EastUS `
+  -Name $VNetName `
+  -AddressPrefix $VNetPrefix1
+# Create a subnet configuration
+$subnetConfig = Add-AzVirtualNetworkSubnetConfig `
+  -Name $FESubName `
+  -AddressPrefix $FESubPrefix `
+  -VirtualNetwork $virtualNetwork
+# Set the subnet configuration for the virtual network
+$virtualNetwork | Set-AzVirtualNetwork
+# Add a gateway subnet
+$vnet = Get-AzVirtualNetwork -ResourceGroupName $RG -Name $VNetName
+Add-AzVirtualNetworkSubnetConfig -Name 'GatewaySubnet' -AddressPrefix $GWSubPrefix -VirtualNetwork $vnet
+# Set the subnet configuration for the virtual network
+$vnet | Set-AzVirtualNetwork
+# Request a public IP address
+$gwpip= New-AzPublicIpAddress -Name $GWIPName -ResourceGroupName $RG -Location $Location `
+ -AllocationMethod Dynamic
+# Create the gateway IP address configuration
+$vnet = Get-AzVirtualNetwork -Name $VNetName -ResourceGroupName $RG
+$subnet = Get-AzVirtualNetworkSubnetConfig -Name 'GatewaySubnet' -VirtualNetwork $vnet
+$gwipconfig = New-AzVirtualNetworkGatewayIpConfig -Name gwipconfig1 -SubnetId $subnet.Id -PublicIpAddressId $gwpip.Id
+# Create the VPN gateway
+New-AzVirtualNetworkGateway -Name $GWName -ResourceGroupName $RG `
+ -Location $Location -IpConfigurations $gwipconfig -GatewayType Vpn `
+ -VpnType RouteBased -GatewaySku VpnGw1 -VpnClientProtocol "IKEv2"
+# Add the VPN client address pool
+$Gateway = Get-AzVirtualNetworkGateway -ResourceGroupName $RG -Name $GWName
+Set-AzVirtualNetworkGateway -VirtualNetworkGateway $Gateway -VpnClientAddressPool $VPNClientAddressPool
+# Create a self-signed root certificate
+$cert = New-SelfSignedCertificate -Type Custom -KeySpec Signature `
+ -Subject "CN=P2SRootCert" -KeyExportPolicy Exportable `
+ -HashAlgorithm sha256 -KeyLength 2048 `
+ -CertStoreLocation "Cert:\CurrentUser\My" -KeyUsageProperty Sign -KeyUsage CertSign
+# Export the root certificate to "C:\cert\P2SRootCert.cer"
+# Upload the root certificate public key information
+$P2SRootCertName = "P2SRootCert.cer"
+$filePathForCert = "C:\cert\P2SRootCert.cer"
+$cert = new-object System.Security.Cryptography.X509Certificates.X509Certificate2($filePathForCert)
+$CertBase64 = [system.convert]::ToBase64String($cert.RawData)
+$p2srootcert = New-AzVpnClientRootCertificate -Name $P2SRootCertName -PublicCertData $CertBase64
+Add-AzVpnClientRootCertificate -VpnClientRootCertificateName $P2SRootCertName `
+ -VirtualNetworkGatewayname $GWName `
+ -ResourceGroupName $RG -PublicCertData $CertBase64
+ ```
