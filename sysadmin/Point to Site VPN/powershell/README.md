@@ -68,11 +68,6 @@ VPN clients that connect to the VNet using this point-to-site connection receive
 Create resource group
 Create an Azure resource group with New-AzResourceGroup. A resource group is a logical container into which Azure resources are deployed and managed.
 
-Azure PowerShell
-
-Copy
-
-Try It
 ```
 New-AzResourceGroup -Name 'myResourceGroup' -Location 'EastUS'
 ```
@@ -150,10 +145,6 @@ $DNS = "10.2.1.4"
 Create a VNet
 Create a resource group.
 
-
-
-
-```New-AzResourceGroup -Name $RG -Location $Location```
 
 Create the subnet configurations for the virtual network, naming them FrontEnd and GatewaySubnet. These prefixes must be part of the VNet address space that you declared.
 
