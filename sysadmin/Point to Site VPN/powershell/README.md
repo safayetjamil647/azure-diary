@@ -184,25 +184,6 @@ Request a dynamically assigned public IP address.
 $pip = New-AzPublicIpAddress -Name $GWIPName -ResourceGroupName $RG -Location $Location -AllocationMethod Dynamic
 $ipconf = New-AzVirtualNetworkGatewayIpConfig -Name $GWIPconfName -Subnet $subnet -PublicIpAddress $pip
 ```
-# Graphical Presentation for Azure Portal
-![image](https://user-images.githubusercontent.com/60421249/186504359-12853db5-3abc-40a6-baab-19494436c0b8.png)
-
-![image](https://user-images.githubusercontent.com/60421249/186504426-a5b2ab49-9755-4b0a-bd67-382d89075477.png)
-
-![image](https://user-images.githubusercontent.com/60421249/186504451-5a6b22ed-686b-409a-bcc3-6ac92dea5ea0.png)
-
-![image](https://user-images.githubusercontent.com/60421249/186504502-3c5b35d2-4e80-40ca-a7fe-b8bd413d587d.png)
-
-![image](https://user-images.githubusercontent.com/60421249/186504571-9ab477f8-9c3e-4f3a-9f35-d2b134c1d1ac.png)
-
-![image](https://user-images.githubusercontent.com/60421249/186504620-727f8f89-eb70-434e-b968-ffa741da6440.png)
-
-![image](https://user-images.githubusercontent.com/60421249/186504810-e394a4d8-9ef2-4cc5-bbec-f638cea408c9.png)
-
-![image](https://user-images.githubusercontent.com/60421249/186504840-d72a4195-f479-4ce6-9867-810ae5e8ff8f.png)
-
-![image](https://user-images.githubusercontent.com/60421249/186504870-b31eb7f2-ca35-45b8-aa1f-a7389a736608.png)
-
 
 Create the VPN gateway
 In this step, you configure and create the virtual network gateway for your VNet.
@@ -222,6 +203,7 @@ Once your gateway is created, you can view it using the following example. If yo
 ```
 Get-AzVirtualNetworkGateway -Name $GWName -ResourceGroup $RG
 ```
+
 Add the VPN client address pool
 After the VPN gateway finishes creating, you can add the VPN client address pool. The VPN client address pool is the range from which the VPN clients receive an IP address when connecting. Use a private IP address range that does not overlap with the on-premises location that you connect from, or with the VNet that you want to connect to.
 
@@ -232,6 +214,24 @@ $Gateway = Get-AzVirtualNetworkGateway -ResourceGroupName $RG -Name $GWName
 Set-AzVirtualNetworkGateway -VirtualNetworkGateway $Gateway -VpnClientAddressPool $VPNClientAddressPool
 ```
 
+# Graphical Presentation for Azure Portal
+![image](https://user-images.githubusercontent.com/60421249/186504359-12853db5-3abc-40a6-baab-19494436c0b8.png)
+
+![image](https://user-images.githubusercontent.com/60421249/186504426-a5b2ab49-9755-4b0a-bd67-382d89075477.png)
+
+![image](https://user-images.githubusercontent.com/60421249/186504451-5a6b22ed-686b-409a-bcc3-6ac92dea5ea0.png)
+
+![image](https://user-images.githubusercontent.com/60421249/186504502-3c5b35d2-4e80-40ca-a7fe-b8bd413d587d.png)
+
+![image](https://user-images.githubusercontent.com/60421249/186504571-9ab477f8-9c3e-4f3a-9f35-d2b134c1d1ac.png)
+
+![image](https://user-images.githubusercontent.com/60421249/186504620-727f8f89-eb70-434e-b968-ffa741da6440.png)
+
+![image](https://user-images.githubusercontent.com/60421249/186504810-e394a4d8-9ef2-4cc5-bbec-f638cea408c9.png)
+
+![image](https://user-images.githubusercontent.com/60421249/186504840-d72a4195-f479-4ce6-9867-810ae5e8ff8f.png)
+
+![image](https://user-images.githubusercontent.com/60421249/186504870-b31eb7f2-ca35-45b8-aa1f-a7389a736608.png)
 
 You can't generate certificates using Azure Cloud Shell. You must use one of the methods outlined in this section. If you want to use PowerShell, you must install it locally.
 
